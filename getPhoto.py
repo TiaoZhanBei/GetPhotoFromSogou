@@ -13,33 +13,38 @@ header = {
 url = 'http://pic.sogou.com/pics'
 
 
-def get_photo(word, num):
+def get_photo(words, num):
     try:
         os.mkdir("pictures")
     except FileExistsError:
         pass
-    print('下载' + word)
     tasks = []
-    for i in range(int(num/47)):
-        params = {
-            'query':word.encode('gbk'),
-            'mode':'1',
-            'start':str(i * 47),
-            'reqType':'ajax',
-            'reqFrom':'result',
-            'tn':0
-        }
-        z1 = requests.get(url=url, params=params, headers=header)
-        print(z1.status_code)
-        js = z1.json()
-        #print(js)
-        j = 0
-        for urls in js['items']:
-            each = urls['pic_url']
-            tasks.append((each, i * 47 + j, word))
-            # get_photo_from_url(each,i*47+j , word)
-            j += 1
-    pool = ThreadPool(20)
+    for word in words:
+        print('下载' + word)
+        for i in range(int(num/47)):
+            params = {
+                'query':word.encode('gbk'),
+                'mode':'1',
+                'start':str(i * 47),
+                'reqType':'ajax',
+                'reqFrom':'result',
+                'tn':0
+            }
+            z1 = requests.get(url=url, params=params, headers=header)
+            print(z1.status_code)
+            try:
+                js = z1.json()
+            except:
+                print('error but jump')
+                continue
+            #print(js)
+            j = 0
+            for urls in js['items']:
+                each = urls['pic_url']
+                tasks.append((each, i * 47 + j, word))
+                # get_photo_from_url(each,i*47+j , word)
+                j += 1
+    pool = ThreadPool(40)
     pool.starmap(get_photo_from_url, tasks)
     pool.close()
 
