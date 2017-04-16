@@ -18,36 +18,37 @@ def get_photo(word, num):
         os.mkdir("pictures")
     except FileExistsError:
         pass
+    print('下载' + word)
+    tasks = []
     for i in range(int(num/47)):
         params = {
-        'query':word.encode('gbk'),
-        'mode':'1',
-        'start':str(i*47),
-        'reqType':'ajax',
-        'reqFrom':'result',
-        'tn':0
-    }
+            'query':word.encode('gbk'),
+            'mode':'1',
+            'start':str(i * 47),
+            'reqType':'ajax',
+            'reqFrom':'result',
+            'tn':0
+        }
         z1 = requests.get(url=url, params=params, headers=header)
         print(z1.status_code)
         js = z1.json()
         #print(js)
         j = 0
-        tasks = []
-        pool = ThreadPool(20)
         for urls in js['items']:
             each = urls['pic_url']
             tasks.append((each, i * 47 + j, word))
             # get_photo_from_url(each,i*47+j , word)
             j += 1
-        pool.starmap(get_photo_from_url, tasks)
-        pool.close()
+    pool = ThreadPool(20)
+    pool.starmap(get_photo_from_url, tasks)
+    pool.close()
 
 
 def get_photo_from_url(Url, id, word):
     print('正在下载第'+str(id)+'张图片')
     print(Url)
     try:
-        pic = requests.get(Url, timeout=10)
+        pic = requests.get(Url, timeout=4)
     except Exception as e:
         print('【错误】当前图片无法下载')
         return
