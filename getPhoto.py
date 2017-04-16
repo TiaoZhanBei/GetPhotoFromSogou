@@ -1,6 +1,8 @@
 import requests
 import os
 
+from multiprocessing.dummy import Pool as ThreadPool
+
 header = {
     'User-Agent':'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2924.87 Safari/537.36',
     'Accept':'text/plain, */*; q=0.01',
@@ -30,17 +32,22 @@ def get_photo(word, num):
         js = z1.json()
         #print(js)
         j = 0
+        tasks = []
+        pool = ThreadPool(20)
         for urls in js['items']:
             each = urls['pic_url']
-            get_photo_from_url(each,i*47+j , word)
+            tasks.append((each, i * 47 + j, word))
+            # get_photo_from_url(each,i*47+j , word)
             j += 1
+        pool.starmap(get_photo_from_url, tasks)
+        pool.close()
 
 
 def get_photo_from_url(Url, id, word):
     print('正在下载第'+str(id)+'张图片')
     print(Url)
     try:
-        pic = requests.get(Url, timeout=15)
+        pic = requests.get(Url, timeout=10)
     except Exception as e:
         print('【错误】当前图片无法下载')
         return
